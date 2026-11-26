@@ -10,6 +10,7 @@ import Dashboard from "./pages/Dashboard";
 import Soon from "./pages/Soon";
 import UsersPage from "./pages/admin/Users";
 import RoomsPage from "./pages/admin/Rooms";
+import StudentsPage from "./pages/admin/Students";
 
 function Splash() {
   return (
@@ -26,7 +27,6 @@ function Home() {
   return <Navigate to={"/" + profile.role} replace />;
 }
 
-// Etibor: in tanho qulaii interfeys ast. Himoyai asosi - Firestore Security Rules.
 function Guard({ role, children }: { role: Role; children: ReactNode }) {
   const { profile, loading } = useAuth();
   if (loading) return <Splash />;
@@ -49,6 +49,7 @@ export default function App() {
               <Route index element={<Dashboard />} />
               {(r === "admin" || r === "director") && <Route path="users" element={<UsersPage />} />}
               {(r === "admin" || r === "director") && <Route path="rooms" element={<RoomsPage />} />}
+              <Route path="students" element={<StudentsPage />} />
               <Route path=":page" element={<Soon />} />
             </Route>
           ))}

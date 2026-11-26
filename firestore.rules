@@ -32,6 +32,11 @@ service cloud.firestore {
       allow create, update, delete: if isAdminOrDirector();
     }
 
+    match /students/{studentId} {
+      allow read: if isActive();
+      allow create, update, delete: if isAdminOrDirector();
+    }
+
     match /activityLogs/{logId} {
       allow read: if isAdmin();
       allow create: if isActive();
