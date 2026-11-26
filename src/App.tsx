@@ -13,6 +13,7 @@ import RoomsPage from "./pages/admin/Rooms";
 import StudentsPage from "./pages/admin/Students";
 import AttendancePage from "./pages/Attendance";
 import DutyPage from "./pages/Duty";
+import ReportsPage from "./pages/admin/Reports";
 
 function Splash() {
   return (
@@ -54,6 +55,7 @@ export default function App() {
               <Route path="students" element={<StudentsPage />} />
               <Route path="attendance" element={<AttendancePage />} />
               <Route path="duty" element={<DutyPage />} />
+              <Route path="reports" element={<ReportsPage />} />
               <Route path=":page" element={<Soon />} />
             </Route>
           ))}
