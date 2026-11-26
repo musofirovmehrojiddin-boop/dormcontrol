@@ -1,0 +1,70 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function me() { return get(/databases/$(db)/documents/users/$(request.auth.uid)).data; }
+    function active() { return signedIn() && me().active == true; }
+    function isAdmin() { return active() && me().role == 'admin'; }
+    function isDirector() { return active() && me().role == 'director'; }
+    function isEducator() { return active() && me().role == 'educator'; }
+
+    // Educator on duty: checked with server time
+    function onDuty(dutyId) {
+      let d = get(/databases/$(db)/documents/dutySchedules/$(dutyId)).data;
+      return isEducator()
+        && (d.educatorUid == request.auth.uid || d.get('substituteUid', '') == request.auth.uid)
+        && request.time >= d.startAt && request.time <= d.endAt;
+    }
+    function canWrite(dutyId) {
+      return onDuty(dutyId) || (isEducator() && me().get('manualAccess', false) == true);
+    }
+
+    match /users/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isAdmin() || isDirector());
+      allow write: if isAdmin();
+    }
+
+    match /{col}/{id} {
+      allow read: if active() && col in ['students','rooms','groups','dutySchedules','systemSettings'];
+      allow write: if isAdmin() && col in ['students','rooms','groups','dutySchedules','systemSettings'];
+    }
+
+    match /attendance/{id} {
+      allow read: if isAdmin() || isDirector() || isEducator();
+      allow create: if canWrite(request.resource.data.dutyId)
+        && request.resource.data.educatorUid == request.auth.uid
+        && request.resource.data.createdAt == request.time
+        && request.resource.data.status in ['present','absent','excused','leave','sick']
+        && request.resource.data.locked == false;
+      allow update: if isAdmin() ||
+        (canWrite(resource.data.dutyId) && resource.data.locked == false
+          && resource.data.educatorUid == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    match /dutySessions/{id} {
+      allow read: if isAdmin() || isDirector() || isEducator();
+      allow create, update: if isAdmin() || (isEducator() && request.resource.data.educatorUid == request.auth.uid);
+    }
+    match /handovers/{id} {
+      allow read: if isAdmin() || isDirector() || isEducator();
+      allow create: if isEducator() && request.resource.data.fromUid == request.auth.uid;
+      allow update: if isAdmin() || (isEducator() && request.resource.data.toUid == request.auth.uid);
+    }
+    match /dailyReports/{id} {
+      allow read: if isAdmin() || isDirector() || isEducator();
+      allow create: if isEducator() || isAdmin();
+      allow update: if isDirector() || isAdmin();
+    }
+    match /notifications/{id} {
+      allow read: if signedIn() && resource.data.toUid == request.auth.uid;
+      allow create: if active();
+      allow update: if signedIn() && resource.data.toUid == request.auth.uid;
+    }
+    match /activityLogs/{id} {
+      allow read: if isAdmin() || isDirector();
+      allow create: if active();
+    }
+  }
+}
