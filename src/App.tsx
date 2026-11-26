@@ -8,6 +8,7 @@ import Layout from "./components/Layout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Soon from "./pages/Soon";
+import UsersPage from "./pages/admin/Users";
 
 function Splash() {
   return (
@@ -24,7 +25,7 @@ function Home() {
   return <Navigate to={"/" + profile.role} replace />;
 }
 
-// Eʼtibor: in tanho qulaii interfeys ast. Himoyai asosi — Firestore Security Rules.
+// Etibor: in tanho qulaii interfeys ast. Himoyai asosi - Firestore Security Rules.
 function Guard({ role, children }: { role: Role; children: ReactNode }) {
   const { profile, loading } = useAuth();
   if (loading) return <Splash />;
@@ -45,6 +46,7 @@ export default function App() {
           {ROLES.map((r) => (
             <Route key={r} path={"/" + r} element={<Guard role={r}><Layout /></Guard>}>
               <Route index element={<Dashboard />} />
+              {r === "admin" && <Route path="users" element={<UsersPage />} />}
               <Route path=":page" element={<Soon />} />
             </Route>
           ))}
