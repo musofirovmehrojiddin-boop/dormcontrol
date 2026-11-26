@@ -1,1 +1,21 @@
 @import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --color-navy-600: #1d3f8f;
+  --color-navy-700: #17336f;
+  --color-navy-800: #112756;
+  --color-navy-900: #0b1d44;
+  --color-navy-950: #071229;
+}
+
+body {
+  margin: 0;
+  background: #f1f5f9;
+  color: #1e293b;
+  font-family: system-ui, "Segoe UI", Roboto, sans-serif;
+}
+.dark body {
+  background: #071229;
+  color: #e2e8f0;
+}

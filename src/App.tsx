@@ -1,13 +1,56 @@
-﻿import { auth, db } from "./lib/firebase";
+﻿import type { ReactNode } from "react";
+import { HashRouter, Navigate, Route, Routes } from "react-router-dom";
+import { Loader2 } from "lucide-react";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { useTheme } from "./lib/useTheme";
+import type { Role } from "./lib/types";
+import Layout from "./components/Layout";
+import Login from "./pages/Login";
+import Dashboard from "./pages/Dashboard";
+import Soon from "./pages/Soon";
+
+function Splash() {
+  return (
+    <div className="grid min-h-dvh place-items-center">
+      <Loader2 className="animate-spin text-sky-500" size={32} />
+    </div>
+  );
+}
+
+function Home() {
+  const { profile, loading } = useAuth();
+  if (loading) return <Splash />;
+  if (!profile) return <Navigate to="/login" replace />;
+  return <Navigate to={"/" + profile.role} replace />;
+}
+
+// Eʼtibor: in tanho qulaii interfeys ast. Himoyai asosi — Firestore Security Rules.
+function Guard({ role, children }: { role: Role; children: ReactNode }) {
+  const { profile, loading } = useAuth();
+  if (loading) return <Splash />;
+  if (!profile) return <Navigate to="/login" replace />;
+  if (profile.role !== role) return <Navigate to={"/" + profile.role} replace />;
+  return <>{children}</>;
+}
+
+const ROLES: Role[] = ["admin", "director", "educator"];
 
 export default function App() {
+  useTheme();
   return (
-    <div className="min-h-screen grid place-items-center bg-sky-50">
-      <div className="rounded-2xl bg-white p-8 shadow text-center">
-        <h1 className="text-2xl font-bold text-blue-900">DormControl</h1>
-        <p className="text-slate-600">Firebase: {auth.app.options.projectId}</p>
-        <p className="text-slate-500 text-sm">{db ? "Firestore омода аст" : "Хато"}</p>
-      </div>
-    </div>
+    <AuthProvider>
+      <HashRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          {ROLES.map((r) => (
+            <Route key={r} path={"/" + r} element={<Guard role={r}><Layout /></Guard>}>
+              <Route index element={<Dashboard />} />
+              <Route path=":page" element={<Soon />} />
+            </Route>
+          ))}
+          <Route path="*" element={<Home />} />
+        </Routes>
+      </HashRouter>
+    </AuthProvider>
   );
 }
