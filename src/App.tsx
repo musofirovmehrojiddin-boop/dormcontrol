@@ -9,6 +9,7 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Soon from "./pages/Soon";
 import UsersPage from "./pages/admin/Users";
+import RoomsPage from "./pages/admin/Rooms";
 
 function Splash() {
   return (
@@ -46,7 +47,8 @@ export default function App() {
           {ROLES.map((r) => (
             <Route key={r} path={"/" + r} element={<Guard role={r}><Layout /></Guard>}>
               <Route index element={<Dashboard />} />
-              {r === "admin" && <Route path="users" element={<UsersPage />} />}
+              {(r === "admin" || r === "director") && <Route path="users" element={<UsersPage />} />}
+              {(r === "admin" || r === "director") && <Route path="rooms" element={<RoomsPage />} />}
               <Route path=":page" element={<Soon />} />
             </Route>
           ))}
