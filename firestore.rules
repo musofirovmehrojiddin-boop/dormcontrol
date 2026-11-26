@@ -20,28 +20,31 @@ service cloud.firestore {
     function isAdminOrDirector() {
       return isActive() && (role() == "admin" || role() == "director");
     }
+    function isStaff() {
+      return isActive() && (role() == "admin" || role() == "director" || role() == "educator");
+    }
 
     match /users/{uid} {
       allow read: if isActive();
       allow create, update: if isAdmin();
       allow delete: if isAdmin();
     }
-
     match /rooms/{roomId} {
       allow read: if isActive();
       allow create, update, delete: if isAdminOrDirector();
     }
-
     match /students/{studentId} {
       allow read: if isActive();
       allow create, update, delete: if isAdminOrDirector();
     }
-
     match /attendance/{recordId} {
       allow read: if isActive();
-      allow create, update, delete: if isAdminOrDirector() || (isActive() && role() == "educator");
+      allow create, update, delete: if isStaff();
     }
-
+    match /duties/{dutyId} {
+      allow read: if isActive();
+      allow write: if isAdminOrDirector();
+    }
     match /activityLogs/{logId} {
       allow read: if isAdmin();
       allow create: if isActive();
